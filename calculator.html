@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 電卓 </title>
+    <style>
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+    <link href="./tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="flex justify-center items-center min-h-screen bg-gray-100">
+        <div class="border-8 border-gray-300 rounded-lg p-10 max-w-2xl w-full">
+            <h1 class="text-center font-bold text-3xl mb-8"> 電卓 </h1>
+            <div class="flex items-center gap-4 mb-4">
+                <input type="number" id = "first_number" name = "first_number" inputmode = "numeric" pattern = "[0-9]*" required
+                    class="w-20 p-2 border border-black rounded">
+                <select id = "operator1" name = "operator1" class="p-2 border border-black rounded">
+                    <option value = "+"> ＋ </option>
+                    <option value = "-"> ー </option>
+                    <option value = "*"> × </option>
+                    <option value = "/"> ÷ </option>
+                </select>
+                <input type = "number" id = "second_number" name = "second_number" inputmode = "numeric" pattern = "[0-9]*" required
+                    class="w-20 p-2 border border-black rounded">
+                <select id = "operator2" name = "operator2" class="p-2 border border-black rounded">
+                    <option value = "+"> ＋ </option>
+                    <option value = "-"> ー </option>
+                    <option value = "*"> × </option>
+                    <option value = "/"> ÷ </option>
+                </select>
+                <input type = "number" id = "third_number" name = "third_number" inputmode = "numeric" pattern = "[0-9]*" required
+                    class="w-20 p-2 border border-black rounded">
+                <button type = "submit" id = "calculate_button" class="w-16 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"> = </button>
+                <input type = "number" id = "result" name = "result" readonly class="w-20 p-2 border border-black rounded">
+            </div>
+            <p id="error_message" class="text-red-500 text-sm mt-1"></p>
+            <div class="flex justify-end mt-4">
+                <button type = "reset" id = "reset_button" class="w-20 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"> リセット </button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    document.getElementById('calculate_button').addEventListener('click', function() {
+        const num1 = parseFloat(document.getElementById('first_number').value);
+        const num2 = parseFloat(document.getElementById('second_number').value);
+        const num3 = parseFloat(document.getElementById('third_number').value);
+        const operator1 = document.getElementById('operator1').value;
+        const operator2 = document.getElementById('operator2').value;
+
+        let intermediateResult = 0;
+        let finalResult = 0;
+
+        if (isNaN(num1) || isNaN(num2) || isNaN(num3)) {
+            document.getElementById('error_message').textContent = 'すべての数字フィールドに入力してください。';
+            return;
+        }
+        
+        if (operator1 === '/' && num2 === 0) {
+            document.getElementById('error_message').textContent = 'ゼロで割ることはできません。';
+            document.getElementById('result').value = '';
+            return;
+        }
+        if (operator2 === '/' && num3 === 0) {
+            document.getElementById('error_message').textContent = 'ゼロで割ることはできません。';
+            document.getElementById('result').value = '';
+            return;
+        }
+        
+
+        document.getElementById('error_message').textContent = '';
+
+        switch (operator1) {
+            case "+":
+                intermediateResult = num1 + num2;
+                break;
+            case '-':
+                intermediateResult = num1 - num2;
+                break;
+            case '*':
+                intermediateResult = num1 * num2;
+                break;
+            case '/':
+                intermediateResult = num1 / num2;
+                break;
+        }
+
+        switch (operator2) {
+            case "+":
+                finalResult = intermediateResult + num3;
+                break;
+            case '-':
+                finalResult = intermediateResult - num3;
+                break;
+            case '*':
+                finalResult = intermediateResult * num3;
+                break;
+            case '/':
+                finalResult = intermediateResult / num3;
+                break;
+        }
+
+        document.getElementById('result').value = isNaN(finalResult) ? 'Error' : finalResult.toString();
+        document.getElementById('error_message').textContent = '';
+    });
+
+    document.getElementById('reset_button').addEventListener('click', function() {
+        document.getElementById('first_number').value = '';
+        document.getElementById('second_number').value = '';
+        document.getElementById('third_number').value = '';
+        document.getElementById('operator1').value = '+';
+        document.getElementById('operator2').value = '+';
+        document.getElementById('result').value = '';
+        document.getElementById('error_message').textContent = '';
+    });
+</script>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> To Do List </title>
+    <link href="./tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.x.x/dist/alpine.min.js" defer></script>
+</head>
+<body>
+    <div class = "flex justify-center items-center min-h-screen bg-gray-100">
+        <div class="border-8 border-gray-300 rounded-lg p-10 max-w-2xl w-full">
+            <h1 class="text-center font-bold text-3xl mb-8"> To Do List </h1>
+            
+            <!-- Add Task Form -->
+            <form id="taskForm" class="mb-4">
+                <div class="flex space-x-2">
+                    <input id="taskDate" type = "date" class="w-40 p-2 border border-black rounded" required>
+                    <input id="taskDescription" type = "text" placeholder = "Enter task description" class="w-60 p-2 border border-black rounded" required>
+                    <button type = "submit" class="w-20 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"> Add Task </button>
+                </div>
+            </form>
+
+            <!-- Task List -->
+            <div id="taskList" class="space-y-4 mt-4">
+                
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskForm = document.getElementById('taskForm');
+            const taskDateInput = document.getElementById('taskDate');
+            const taskDescriptionInput = document.getElementById('taskDescription');
+            const taskList = document.getElementById('taskList');
+
+            let tasks = [];
+
+            taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const date = taskDateInput.value;
+                const description = taskDescriptionInput.value;
+
+                if (date && description) {
+                    const newTask = {
+                        id: Date.now(),
+                        date: date,
+                        description: description,
+                        completed: false
+                    };
+                    tasks.push(newTask);
+                    renderTasks();
+                    taskDateInput.value = '';
+                    taskDescriptionInput.value = '';
+                }
+            });
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+
+                // Filter and sort tasks
+                const uncompletedTasks = tasks.filter(task => !task.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const completedTasks = tasks.filter(task => task.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const renderTask = (task) => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `flex items-center justify-between p-2 border border-gray-300 rounded mb-2 ${task.completed ? 'bg-gray-200' : ''}`;
+                    
+                    taskElement.innerHTML = `
+                        <div>
+                            <span>${task.date}</span> - <span>${task.description}</span>
+                        </div>
+                        <div>
+                            <button onclick="completeTask(${task.id})" class="bg-green-500 text-white px-2 py-1 rounded mr-2 ${task.completed ? 'hidden' : ''}">Complete</button>
+                            <button onclick="deleteTask(${task.id})" class="bg-red-500 text-white px-2 py-1 rounded ${task.completed ? '' : 'hidden'}">Delete</button>
+                        </div>
+                    `;
+
+                    taskList.appendChild(taskElement);
+                };
+
+                uncompletedTasks.forEach(renderTask);
+                completedTasks.forEach(renderTask);
+            }
+
+            window.completeTask = (id) => {
+                const task = tasks.find(task => task.id === id);
+                if (task) {
+                    task.completed = true;
+                    renderTasks();
+                }
+            };
+
+            window.deleteTask = (id) => {
+                tasks = tasks.filter(task => task.id !== id);
+                renderTasks();
+            };
+        });
+    </script>
+</body>
+</html>
