@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> To Do List </title>
+    <title> やることリスト </title>
     <link href="./tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.x.x/dist/alpine.min.js" defer></script>
 </head>
 <body>
     <div class = "flex justify-center items-center min-h-screen bg-gray-100">
         <div class="border-8 border-gray-300 rounded-lg p-10 max-w-2xl w-full">
-            <h1 class="text-center font-bold text-3xl mb-8"> To Do List </h1>
+            <h1 class="text-center font-bold text-3xl mb-8"> やることリスト </h1>
             
             <!-- Add Task Form -->
             <form id="taskForm" class="mb-4">
-                <div class="flex space-x-2">
+                <div class="flex justify-center space-x-4">
                     <input id="taskDate" type = "date" class="w-40 p-2 border border-black rounded" required>
-                    <input id="taskDescription" type = "text" placeholder = "Enter task description" class="w-60 p-2 border border-black rounded" required>
-                    <button type = "submit" class="w-20 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"> Add Task </button>
+                    <input id="taskDescription" type = "text" placeholder = "タスクの説明を入力してください" class="w-60 p-2 border border-black rounded" required>
+                    <button type = "submit" class="w-40 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"> タスクを追加 </button>
                 </div>
             </form>
 
@@ -35,6 +34,27 @@
             const taskList = document.getElementById('taskList');
 
             let tasks = [];
+            let activeTaskId = null;
+
+            const today = new Date().toISOString().split('T')[0];
+            taskDateInput.setAttribute('min', today);
+
+            taskDateInput.addEventListener('invalid', () => {
+                taskDateInput.setCustomValidity('日付を選択してください。');
+            });
+        
+            taskDescriptionInput.addEventListener('invalid', () => {
+                taskDescriptionInput.setCustomValidity('タスクの説明を入力してください。');
+            });
+        
+            taskDateInput.addEventListener('input', () => {
+                taskDateInput.setCustomValidity('');
+            });
+        
+            taskDescriptionInput.addEventListener('input', () => {
+                taskDescriptionInput.setCustomValidity('');
+            });
+        
 
             taskForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -48,6 +68,7 @@
                         description: description,
                         completed: false
                     };
+                    
                     tasks.push(newTask);
                     renderTasks();
                     taskDateInput.value = '';
@@ -57,32 +78,40 @@
 
             function renderTasks() {
                 taskList.innerHTML = '';
-
-                // Filter and sort tasks
-                const uncompletedTasks = tasks.filter(task => !task.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
-                const completedTasks = tasks.filter(task => task.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
-
+            
+                const uncompletedTasks = tasks.filter(task => !task.completed).sort((a, b) => new Date(a.date) - new Date(b.date));
+                const completedTasks = tasks.filter(task => task.completed).sort((a, b) => new Date(a.date) - new Date(b.date));
+            
                 const renderTask = (task) => {
                     const taskElement = document.createElement('div');
                     taskElement.className = `flex items-center justify-between p-2 border border-gray-300 rounded mb-2 ${task.completed ? 'bg-gray-200' : ''}`;
-                    
+            
                     taskElement.innerHTML = `
-                        <div>
+                        <div class="flex-1 cursor-pointer" onclick="toggleButtons(${task.id})">
                             <span>${task.date}</span> - <span>${task.description}</span>
+                            <span class="ml-2 ${task.completed ? 'text-green-500' : 'text-red-500'}">${task.completed ? '完了' : '未完了'}</span>
                         </div>
-                        <div>
-                            <button onclick="completeTask(${task.id})" class="bg-green-500 text-white px-2 py-1 rounded mr-2 ${task.completed ? 'hidden' : ''}">Complete</button>
-                            <button onclick="deleteTask(${task.id})" class="bg-red-500 text-white px-2 py-1 rounded ${task.completed ? '' : 'hidden'}">Delete</button>
+                        <div id="buttons-${task.id}" class="hidden">
+                            <button onclick="completeTask(${task.id})" class="bg-green-500 text-white px-2 py-1 rounded mr-2 ${task.completed ? 'hidden' : ''}">完了</button>
+                            <button onclick="incompleteTask(${task.id})" class="bg-yellow-500 text-white px-2 py-1 rounded mr-2 ${task.completed ? '' : 'hidden'}">未完了</button>
+                            <button onclick="deleteTask(${task.id})" class="bg-red-500 text-white px-2 py-1 rounded ${task.completed ? '' : 'hidden'}">削除</button>
                         </div>
                     `;
-
+            
                     taskList.appendChild(taskElement);
                 };
-
+            
                 uncompletedTasks.forEach(renderTask);
                 completedTasks.forEach(renderTask);
             }
-
+            
+            window.incompleteTask = (id) => {
+                const task = tasks.find(task => task.id === id);
+                if (task) {
+                    task.completed = false;
+                    renderTasks();
+                }
+            }
             window.completeTask = (id) => {
                 const task = tasks.find(task => task.id === id);
                 if (task) {
@@ -90,11 +119,28 @@
                     renderTasks();
                 }
             };
-
+            
             window.deleteTask = (id) => {
-                tasks = tasks.filter(task => task.id !== id);
-                renderTasks();
+                const task = tasks.find(task => task.id === id);
+                if (task && task.completed) {
+                    tasks = tasks.filter(task => task.id !== id);
+                    renderTasks();
+                }
             };
+
+            window.toggleButtons = (id) => {
+                const buttonsContainer = document.getElementById(`buttons-${id}`);
+
+                if (activeTaskId !== null && activeTaskId !== id) {
+                    document.getElementById(`buttons-${activeTaskId}`).classList.add('hidden');
+                }
+
+                buttonsContainer.classList.toggle('hidden');
+
+                activeTaskId = buttonsContainer.classList.contains('hidden') ? null : id;
+            };
+
+            renderTasks();
         });
     </script>
 </body>
